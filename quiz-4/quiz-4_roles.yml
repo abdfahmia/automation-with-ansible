@@ -1,0 +1,6 @@
+---
+- name: Deploy quiz roles
+  hosts: managed
+  become: true
+  roles:
+    - quiz-roles

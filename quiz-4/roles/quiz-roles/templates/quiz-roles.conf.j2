@@ -1,0 +1,14 @@
+<VirtualHost *:80>
+    ServerName quiz-roles.abdul7-adinusa
+    DocumentRoot /var/www/quiz-roles/{{ ansible_hostname }}
+
+    <Directory /var/www/quiz-roles/{{ ansible_hostname }}>
+        Options Indexes FollowSymLinks
+        AllowOverride None
+        Require all granted
+    </Directory>
+
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>
+
