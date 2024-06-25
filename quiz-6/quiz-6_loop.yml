@@ -1,0 +1,37 @@
+---
+- name: Create users on managed hosts
+  hosts: all
+  become: yes
+  vars_files:
+    - secret.yml
+
+  tasks:
+    - name: Create ops users on managed1
+      user:
+        name: "{{ item }}"
+        password: "{{ pass | password_hash('sha512') }}"
+      loop: "{{ list_user_ops_managed1 }}"
+      when: inventory_hostname == 'pod-abdul7-managed1'
+
+    - name: Create dev users on managed1
+      user:
+        name: "{{ item }}"
+        password: "{{ pass | password_hash('sha512') }}"
+      loop: "{{ list_user_dev_managed1 }}"
+      when: inventory_hostname == 'pod-abdul7-managed1'
+
+
+    - name: Create ops users on managed2
+      user:
+        name: "{{ item }}"
+        password: "{{ pass | password_hash('sha512') }}"
+      loop: "{{ list_user_ops_managed2 }}"
+      when: inventory_hostname == 'pod-abdul7-managed2'
+
+    - name: Create dev users on managed2
+      user:
+        name: "{{ item }}"
+        password: "{{ pass | password_hash('sha512') }}"
+      loop: "{{ list_user_dev_managed2 }}"
+      when: inventory_hostname == 'pod-abdul7-managed2'
+
