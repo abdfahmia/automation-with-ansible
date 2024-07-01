@@ -1,0 +1,37 @@
+---
+- name: Lab task failure
+  hosts: managed
+  vars:
+    web_pkg: apache2
+    db_pkg: mariadb-server
+    db_svc: mariadb
+
+  tasks:
+    - name: execute command
+      command: hostnamectl
+      register: Result
+      changed_when: false
+
+    - name: print command
+      debug:
+        var: Result.stdout_lines
+
+    - name: set up webserver
+      block:
+        - name: Install {{ web_pkg }} package
+          apt:
+            name: "{{ web_pkg }}"
+            state: present
+          failed_when: web_pkg == "apache2"
+
+      rescue:
+        - name: Install {{ db_pkg }} package
+          apt:
+            name: "{{ db_pkg }}"
+            state: present
+
+      always:
+        - name: Start {{ db_svc }} service
+          service:
+            name: "{{ db_svc }}"
+            state: started
