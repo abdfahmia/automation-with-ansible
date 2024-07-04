@@ -1,0 +1,80 @@
+---
+- name: Install mariaDB server
+  hosts: managed
+  vars:
+    required_pkgs: 
+      - mariadb-server
+      - python3-pymysql     
+    db_user: abdul7
+    db_pw: adinusa
+    db_socket: /var/run/mysqld/mysqld.sock
+
+  tasks:
+    - name: "{{ required_pkgs }} packages are installed"
+      apt:
+        name: "{{ required_pkgs }}"
+        state: present
+      notify: restart service mariadb
+    
+    - name: task that force handlers to run imediately
+      meta: flush_handlers
+
+    - name: set mariaDB user and password
+      mysql_user:
+        login_unix_socket: "{{ db_socket }}"
+        login_host: localhost
+        login_user: root
+        login_password: ''
+        name: "{{ db_user }}"
+        password: "{{ db_pw }}"
+        priv: "*.*:ALL,GRANT"
+        state: present
+        host: localhost
+      no_log: yes
+      notify: restart service mariadb
+
+    - name: add a data for database
+      copy:
+        src: ./dump.sql
+        dest: /tmp/dump.sql      
+      notify: 
+      - "create database"
+      - restart service mariadb
+
+    - name: task that force handlers to run imediately
+      meta: flush_handlers
+
+    - name: check if DB exists
+      shell: mysql --host=localhost --user={{ db_user }} --password={{ db_pw }} -e 'SHOW DATABASES;'
+      register: dbstatus
+
+    - name: show list existed databases
+      debug:
+        var: dbstatus.stdout_lines
+
+  handlers:
+    - name: restart service mariadb
+      service:
+        name: mariadb
+        state: restarted
+        enabled: yes
+
+    - name: create a new database
+      mysql_db:
+        name: testdb
+        state: present
+        login_unix_socket: "{{ db_socket }}"
+        login_user: "{{ db_user }}"
+        login_password: "{{ db_pw }}"
+      listen: "create database"
+
+    - name: insert a data into database
+      mysql_db: 
+        name: testdb
+        state: import
+        target: /tmp/dump.sql
+        login_unix_socket: "{{ db_socket }}"
+        login_user: "{{ db_user }}"
+        login_password: "{{ db_pw }}"
+      listen: "create database"
+
